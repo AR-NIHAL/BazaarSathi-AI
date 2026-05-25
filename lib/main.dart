@@ -1,7 +1,20 @@
 import 'package:flutter/material.dart';
-import 'presentation/screens/home_screen.dart'; // তোমার প্রজেক্ট স্ট্রাকচার অনুযায়ী পাথটি চেক করে নিও
+import 'package:hive_flutter/hive_flutter.dart';
+import 'data/models/bazaar_item.dart';
+import 'presentation/screens/home_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // হাইভ ইনিশিয়াকশন
+  await Hive.initFlutter();
+  
+  // আমাদের তৈরি করা বাজারের আইটেম অ্যাডাপ্টার রেজিস্টার করা
+  Hive.registerAdapter(BazaarItemAdapter());
+  
+  // 'bazaar_box' নামে একটি লোকাল স্টোরেজ বক্স ওপেন করা
+  await Hive.openBox<BazaarItem>('bazaar_box');
+
   runApp(const MyApp());
 }
 
@@ -10,14 +23,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'স্মার্ট বাজার ফর্দ',
-      debugShowCheckedModeBanner: false, // স্ক্রিনের কোণার লাল ডেমো ব্যানারটি সরানোর জন্য
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
-        useMaterial3: true,
-      ),
-      home: const HomeScreen(), // ডিফল্ট কাউন্টার পেজ বদলে আমাদের হোম স্ক্রিন সেট করা হলো
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: HomeScreen(),
     );
   }
 }
