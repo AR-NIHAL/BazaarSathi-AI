@@ -3,7 +3,7 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 
 class GeminiService {
   // তোমার API Key-টি এখানে বসাও (টেস্টিং এর জন্য)
-  final String _apiKey = "AIzaSyA3zCyZ8_5E8D2T9PQPqlqqBxEeNlU7bVg"; 
+  final String _apiKey = ""; 
   late final GenerativeModel _model;
 
   GeminiService() {
