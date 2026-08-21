@@ -1,30 +1,37 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:bazaar_sathi_ai/main.dart';
+import 'package:bazaar_sathi_ai/data/models/bazaar_item.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('BazaarItem Model Tests', () {
+    test('BazaarItem initializes with default values', () {
+      final item = BazaarItem(
+        id: '1',
+        itemName: 'টমেটো',
+        quantity: '১ কেজি',
+        category: 'সবজি',
+      );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+      expect(item.id, '1');
+      expect(item.itemName, 'টমেটো');
+      expect(item.quantity, '১ কেজি');
+      expect(item.category, 'সবজি');
+      expect(item.isChecked, false);
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('BazaarItem.fromJson deserializes correctly', () {
+      final json = {
+        'id': '101',
+        'itemName': 'রুই মাছ',
+        'quantity': '২ কেজি',
+        'category': 'মাছ-মাংস',
+      };
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+      final item = BazaarItem.fromJson(json);
+      expect(item.id, '101');
+      expect(item.itemName, 'রুই মাছ');
+      expect(item.quantity, '২ কেজি');
+      expect(item.category, 'মাছ-মাংস');
+      expect(item.isChecked, false);
+    });
   });
 }

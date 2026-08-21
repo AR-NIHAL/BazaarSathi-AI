@@ -1,4 +1,4 @@
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 // এই লাইনটি কোড জেনারেট করার জন্য অত্যন্ত জরুরি
 part 'bazaar_item.g.dart';
@@ -9,16 +9,19 @@ class BazaarItem extends HiveObject {
   final String id;
 
   @HiveField(1)
-  final String itemName;
+  String itemName;
 
   @HiveField(2)
-  final String quantity;
+  String quantity;
 
   @HiveField(3)
-  final String category;
+  String category;
 
   @HiveField(4)
   bool isChecked; // এটি ফাইনাল হবে না, কারণ ইউজার বক্সে টিক মার্ক দেবে
+
+  @HiveField(5)
+  int? estimatedPrice; // আনুমানিক মূল্য (টাকায়)
 
   BazaarItem({
     required this.id,
@@ -26,6 +29,7 @@ class BazaarItem extends HiveObject {
     required this.quantity,
     required this.category,
     this.isChecked = false,
+    this.estimatedPrice,
   });
 
   factory BazaarItem.fromJson(Map<String, dynamic> json) {
@@ -34,6 +38,9 @@ class BazaarItem extends HiveObject {
       itemName: json['itemName'] ?? '',
       quantity: json['quantity'] ?? '',
       category: json['category'] ?? 'অন্যান্য',
+      estimatedPrice: json['estimatedPrice'] != null
+          ? int.tryParse(json['estimatedPrice'].toString())
+          : null,
     );
   }
 }

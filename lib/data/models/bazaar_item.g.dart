@@ -22,13 +22,14 @@ class BazaarItemAdapter extends TypeAdapter<BazaarItem> {
       quantity: fields[2] as String,
       category: fields[3] as String,
       isChecked: fields[4] as bool,
+      estimatedPrice: fields[5] as int?,
     );
   }
 
   @override
   void write(BinaryWriter writer, BazaarItem obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -38,7 +39,9 @@ class BazaarItemAdapter extends TypeAdapter<BazaarItem> {
       ..writeByte(3)
       ..write(obj.category)
       ..writeByte(4)
-      ..write(obj.isChecked);
+      ..write(obj.isChecked)
+      ..writeByte(5)
+      ..write(obj.estimatedPrice);
   }
 
   @override

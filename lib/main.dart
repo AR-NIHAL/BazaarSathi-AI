@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'data/models/bazaar_item.dart';
 import 'presentation/screens/home_screen.dart';
@@ -6,7 +7,14 @@ import 'presentation/screens/home_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // হাইভ ইনিশিয়াকশন
+  // Load environment variables (.env)
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    debugPrint("Warning: Could not load .env file: $e");
+  }
+
+  // হাইভ ইনিশিয়ালাইজেশন
   await Hive.initFlutter();
   
   // আমাদের তৈরি করা বাজারের আইটেম অ্যাডাপ্টার রেজিস্টার করা

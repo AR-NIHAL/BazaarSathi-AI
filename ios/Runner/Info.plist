@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Sm</string>
+	<string>BazaarSathi AI</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,7 +15,15 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>sm</string>
+	<string>bazaar_sathi_ai</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>BazaarSathi AI requires microphone access to record and parse your Bengali voice shopping list.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>BazaarSathi AI requires speech recognition access to convert your Bengali speech into structured shopping items.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>BazaarSathi AI requires camera access to scan handwritten bazaar lists.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>BazaarSathi AI requires photo library access to upload photos of handwritten bazaar lists.</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
