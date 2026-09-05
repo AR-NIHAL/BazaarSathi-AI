@@ -67,4 +67,66 @@ Hope this helps with your bazaar!
       expect(result[0]['estimatedPrice'], isNull);
     });
   });
+
+  group('GeminiService Offline Fallback Parser Tests', () {
+    final service = GeminiService(apiKey: 'dummy_key');
+
+    test('Parses Banglish phrases like "dui kg alu 3 kg peyaj"', () {
+      final items = service.parseBazaarListOffline('dui kg alu 3 kg peyaj');
+
+      expect(items.length, 2);
+      expect(items[0]['itemName'], 'আলু');
+      expect(items[0]['quantity'], '২ কেজি');
+      expect(items[0]['category'], 'সবজি');
+
+      expect(items[1]['itemName'], 'পেঁয়াজ');
+      expect(items[1]['quantity'], '৩ কেজি');
+      expect(items[1]['category'], 'সবজি');
+    });
+
+    test('Parses Bengali phrases separated by "আর" or commas', () {
+      final items = service.parseBazaarListOffline('২ কেজি আলু আর ১ লিটার তেল');
+
+      expect(items.length, 2);
+      expect(items[0]['itemName'], 'আলু');
+      expect(items[0]['quantity'], '২ কেজি');
+      expect(items[0]['category'], 'সবজি');
+
+      expect(items[1]['itemName'], 'তেল');
+      expect(items[1]['quantity'], '১ লিটার');
+      expect(items[1]['category'], 'মুদি মাল');
+    });
+
+    test('Parses English digits without commas: "2 kg alu 3 kg peyaj"', () {
+      final items = service.parseBazaarListOffline('2 kg alu 3 kg peyaj');
+
+      expect(items.length, 2);
+      expect(items[0]['itemName'], 'আলু');
+      expect(items[0]['quantity'], '২ কেজি');
+      expect(items[0]['category'], 'সবজি');
+
+      expect(items[1]['itemName'], 'পেঁয়াজ');
+      expect(items[1]['quantity'], '৩ কেজি');
+      expect(items[1]['category'], 'সবজি');
+    });
+
+    test('Parses Bengali digits without connectives: "২ কেজি আলু ৩ কেজি পেঁয়াজ"', () {
+      final items = service.parseBazaarListOffline('২ কেজি আলু ৩ কেজি পেঁয়াজ');
+
+      expect(items.length, 2);
+      expect(items[0]['itemName'], 'আলু');
+      expect(items[0]['quantity'], '২ কেজি');
+      expect(items[0]['category'], 'সবজি');
+
+      expect(items[1]['itemName'], 'পেঁয়াজ');
+      expect(items[1]['quantity'], '৩ কেজি');
+      expect(items[1]['category'], 'সবজি');
+    });
+
+    test('Returns empty list for blank or whitespace text', () {
+      final items = service.parseBazaarListOffline('   ');
+      expect(items, isEmpty);
+    });
+  });
 }
+

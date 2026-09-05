@@ -125,22 +125,28 @@ class ShoppingSummaryCard extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.account_balance_wallet_outlined,
-                          color: Colors.yellowAccent, size: 18),
-                      const SizedBox(width: 6),
-                      Text(
-                        'আনুমানিক বাজেট: ৳${totalEstimatedPrice.toBengaliDigits()}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                  Expanded(
+                    child: Row(
+                      children: [
+                        const Icon(Icons.account_balance_wallet_outlined,
+                            color: Colors.yellowAccent, size: 18),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            'আনুমানিক বাজেট: ৳${totalEstimatedPrice.toBengaliDigits()}',
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                  if (completedEstimatedPrice > 0)
+                  if (completedEstimatedPrice > 0) ...[
+                    const SizedBox(width: 8),
                     Text(
                       'খরচ: ৳${completedEstimatedPrice.toBengaliDigits()}',
                       style: const TextStyle(
@@ -148,6 +154,7 @@ class ShoppingSummaryCard extends StatelessWidget {
                         fontSize: 12,
                       ),
                     ),
+                  ],
                 ],
               ),
             ),

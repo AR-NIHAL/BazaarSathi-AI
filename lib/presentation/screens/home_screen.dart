@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -24,6 +25,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool _isListening = false;
   String _selectedLocaleId = 'bn_BD'; // Default Bengali (Bangladesh)
+  Timer? _silenceTimer;
+  String _accumulatedVoiceText = '';
 
   final GeminiService _geminiService = GeminiService();
   bool _isLoading = false;
@@ -54,17 +57,15 @@ class _HomeScreenState extends State<HomeScreen> {
       final available = await _speech.initialize(
         onStatus: (status) {
           debugPrint('Speech Status: $status');
-          if (status == 'done' || status == 'notListening') {
-            if (_isListening) {
-              setState(() => _isListening = false);
-              if (_textController.text.isNotEmpty) {
-                _processVoiceInput(_textController.text);
-              }
-            }
-          }
+          // We intentionally do not auto-submit instantly on 'notListening'.
+          // Silence is handled via the 5-second silence timer or manual stop.
         },
         onError: (errorNotification) {
           debugPrint('Speech Error: ${errorNotification.errorMsg}');
+          if (errorNotification.errorMsg.contains('error_no_match') ||
+              errorNotification.errorMsg.contains('error_speech_timeout')) {
+            return;
+          }
           if (mounted) {
             setState(() => _isListening = false);
           }
@@ -90,6 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _silenceTimer?.cancel();
     _textController.dispose();
     super.dispose();
   }
@@ -102,15 +104,54 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       if (available) {
+        _silenceTimer?.cancel();
+        _accumulatedVoiceText = _textController.text.trim();
         setState(() => _isListening = true);
+
         await _speech.listen(
           listenOptions: stt.SpeechListenOptions(
             listenMode: stt.ListenMode.dictation,
             partialResults: true,
+            localeId: _selectedLocaleId,
+            pauseFor: const Duration(seconds: 8),
+            listenFor: const Duration(minutes: 3),
+            cancelOnError: false,
           ),
           onResult: (val) {
-            setState(() {
-              _textController.text = val.recognizedWords;
+            _silenceTimer?.cancel();
+            final currentWords = val.recognizedWords.trim();
+            if (currentWords.isNotEmpty) {
+              if (val.finalResult) {
+                // Phrase finalized by engine: commit to accumulated voice buffer
+                if (_accumulatedVoiceText.isEmpty) {
+                  _accumulatedVoiceText = currentWords;
+                } else if (!_accumulatedVoiceText.endsWith(currentWords)) {
+                  _accumulatedVoiceText = '$_accumulatedVoiceText $currentWords';
+                }
+                setState(() {
+                  _textController.text = _accumulatedVoiceText;
+                });
+              } else {
+                // Live partial result for ongoing phrase
+                setState(() {
+                  if (_accumulatedVoiceText.isNotEmpty) {
+                    if (currentWords.startsWith(_accumulatedVoiceText)) {
+                      _textController.text = currentWords;
+                    } else {
+                      _textController.text = '$_accumulatedVoiceText $currentWords';
+                    }
+                  } else {
+                    _textController.text = currentWords;
+                  }
+                });
+              }
+            }
+
+            // Start relaxed silence timer: auto-submit after 5 seconds of complete silence
+            _silenceTimer = Timer(const Duration(seconds: 5), () {
+              if (_isListening && _textController.text.trim().isNotEmpty) {
+                _stopListeningAndProcess();
+              }
             });
           },
         );
@@ -124,17 +165,26 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }
     } else {
+      _stopListeningAndProcess();
+    }
+  }
+
+  void _stopListeningAndProcess() async {
+    _silenceTimer?.cancel();
+    if (_isListening) {
       setState(() => _isListening = false);
       await _speech.stop();
-      if (_textController.text.isNotEmpty) {
-        _processVoiceInput(_textController.text);
-      }
+    }
+    final text = _textController.text.trim();
+    _accumulatedVoiceText = '';
+    if (text.isNotEmpty) {
+      _processVoiceInput(text);
     }
   }
 
   void _processVoiceInput(String text) async {
     final cleanText = text.trim();
-    if (cleanText.isEmpty) return;
+    if (cleanText.isEmpty || _isLoading) return;
 
     setState(() {
       _isLoading = true;
@@ -142,20 +192,76 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
-      final List<Map<String, dynamic>> aiResponse =
+      List<Map<String, dynamic>> aiResponse =
           await _geminiService.parseBazaarList(cleanText);
 
-      await _addItemsToBox(aiResponse);
-      _textController.clear();
+      // If AI returned empty (e.g. quota limit, network error, or no items detected)
+      if (aiResponse.isEmpty) {
+        // Automatically attempt offline fallback rule-based parsing
+        final offlineItems = _geminiService.parseBazaarListOffline(cleanText);
+        if (offlineItems.isNotEmpty) {
+          aiResponse = offlineItems;
+          await _addItemsToBox(aiResponse);
+          _textController.clear();
+          _accumulatedVoiceText = '';
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('অফলাইন নিয়মে ${aiResponse.length.toBengaliDigits()} টি আইটেম যোগ করা হয়েছে!'),
+                backgroundColor: Colors.blueGrey[800],
+              ),
+            );
+          }
+        } else {
+          if (mounted) {
+            final errorMsg = _geminiService.lastError ??
+                'কোনো বাজার আইটেম সনাক্ত করা যায়নি। অনুগ্রহ করে স্পষ্ট করে বলুন বা লিখুন।';
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(errorMsg),
+                backgroundColor: Colors.orange[800],
+              ),
+            );
+          }
+        }
+      } else {
+        await _addItemsToBox(aiResponse);
+        _textController.clear();
+        _accumulatedVoiceText = '';
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${aiResponse.length.toBengaliDigits()} টি আইটেম ফর্দে যোগ করা হয়েছে!'),
+              backgroundColor: Colors.green[800],
+            ),
+          );
+        }
+      }
     } catch (e) {
       debugPrint("Error storing data: $e");
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('দুঃখিত, এআই সার্ভিস কাজ করছে না! ইন্টারনেট সংযোগ চেক করুন।'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
+      // Seamlessly fall back to offline parser on unexpected exception
+      final offlineItems = _geminiService.parseBazaarListOffline(cleanText);
+      if (offlineItems.isNotEmpty) {
+        await _addItemsToBox(offlineItems);
+        _textController.clear();
+        _accumulatedVoiceText = '';
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('অফলাইন নিয়মে ${offlineItems.length.toBengaliDigits()} টি আইটেম যুক্ত হয়েছে!'),
+              backgroundColor: Colors.teal[800],
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('ত্রুটি: $e'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
       }
     } finally {
       if (mounted) {
@@ -330,13 +436,26 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Helper to insert AI items into Hive box
   Future<void> _addItemsToBox(List<Map<String, dynamic>> items) async {
-    for (var itemMap in items) {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (int i = 0; i < items.length; i++) {
+      final itemMap = items[i];
+      final name = itemMap['itemName']?.toString().trim() ?? 'অজানা আইটেম';
+      final qty = itemMap['quantity']?.toString().trim() ?? '১ টি';
+      final cat = itemMap['category']?.toString().trim() ?? 'অন্যান্য';
+      final rawPrice = itemMap['estimatedPrice'];
+      int? price;
+      if (rawPrice is num) {
+        price = rawPrice.toInt();
+      } else if (rawPrice != null) {
+        price = int.tryParse(rawPrice.toString());
+      }
+
       final newItem = BazaarItem(
-        id: '${DateTime.now().millisecondsSinceEpoch}_${itemMap['itemName'].hashCode}',
-        itemName: itemMap['itemName'] ?? 'অজানা আইটেম',
-        quantity: itemMap['quantity'] ?? '১ টি',
-        category: itemMap['category'] ?? 'অন্যান্য',
-        estimatedPrice: itemMap['estimatedPrice'] as int?,
+        id: '${now}_${i}_${name.hashCode}',
+        itemName: name,
+        quantity: qty,
+        category: cat,
+        estimatedPrice: price,
       );
       await _bazaarBox.put(newItem.id, newItem);
     }
@@ -713,6 +832,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                           BorderRadius.circular(12),
                                     ),
                                     child: ListTile(
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 4),
                                       onTap: () =>
                                           _showAddOrEditDialog(item: item),
                                       leading: CircleAvatar(
@@ -730,8 +852,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                       title: Text(
                                         item.itemName,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
-                                          fontSize: 17,
+                                          fontSize: 16,
                                           fontWeight: FontWeight.w600,
                                           decoration: item.isChecked
                                               ? TextDecoration.lineThrough
@@ -741,39 +865,49 @@ class _HomeScreenState extends State<HomeScreen> {
                                               : Colors.black87,
                                         ),
                                       ),
-                                      subtitle: Row(
-                                        children: [
-                                          Text(
-                                            'পরিমাণ: ${item.quantity}',
-                                            style: TextStyle(
-                                              color: item.isChecked
-                                                  ? Colors.grey
-                                                  : Colors.grey[700],
-                                            ),
-                                          ),
-                                          if (item.estimatedPrice != null) ...[
-                                            const SizedBox(width: 8),
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                  horizontal: 6, vertical: 2),
-                                              decoration: BoxDecoration(
-                                                color: Colors.green[50],
-                                                borderRadius:
-                                                    BorderRadius.circular(6),
-                                                border: Border.all(
-                                                    color: Colors.green.shade200),
+                                      subtitle: Padding(
+                                        padding: const EdgeInsets.only(top: 4),
+                                        child: Wrap(
+                                          spacing: 6,
+                                          runSpacing: 4,
+                                          crossAxisAlignment:
+                                              WrapCrossAlignment.center,
+                                          children: [
+                                            Text(
+                                              'পরিমাণ: ${item.quantity}',
+                                              style: TextStyle(
+                                                color: item.isChecked
+                                                    ? Colors.grey
+                                                    : Colors.grey[700],
+                                                fontSize: 13,
                                               ),
-                                              child: Text(
-                                                '~ ৳${item.estimatedPrice!.toBengaliDigits()}',
-                                                style: TextStyle(
-                                                  color: Colors.green[800],
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.bold,
+                                            ),
+                                            if (item.estimatedPrice != null)
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 6,
+                                                        vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.green[50],
+                                                  borderRadius:
+                                                      BorderRadius.circular(6),
+                                                  border: Border.all(
+                                                      color: Colors
+                                                          .green.shade200),
+                                                ),
+                                                child: Text(
+                                                  '~ ৳${item.estimatedPrice!.toBengaliDigits()}',
+                                                  style: TextStyle(
+                                                    color: Colors.green[800],
+                                                    fontSize: 11,
+                                                    fontWeight:
+                                                        FontWeight.bold,
+                                                  ),
                                                 ),
                                               ),
-                                            ),
                                           ],
-                                        ],
+                                        ),
                                       ),
                                       trailing: Row(
                                         mainAxisSize: MainAxisSize.min,
@@ -781,9 +915,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                           IconButton(
                                             icon: const Icon(
                                               Icons.edit_outlined,
-                                              size: 20,
+                                              size: 18,
                                               color: Colors.grey,
                                             ),
+                                            visualDensity:
+                                                VisualDensity.compact,
+                                            padding: EdgeInsets.zero,
+                                            constraints: const BoxConstraints(
+                                                minWidth: 28, minHeight: 28),
                                             tooltip: 'পরিবর্তন করুন',
                                             onPressed: () =>
                                                 _showAddOrEditDialog(
@@ -792,6 +931,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                           Checkbox(
                                             activeColor: Colors.green[700],
                                             value: item.isChecked,
+                                            visualDensity:
+                                                VisualDensity.compact,
+                                            materialTapTargetSize:
+                                                MaterialTapTargetSize
+                                                    .shrinkWrap,
                                             onChanged: (bool? value) {
                                               item.isChecked =
                                                   value ?? false;
@@ -801,8 +945,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                           IconButton(
                                             icon: const Icon(
                                               Icons.remove_circle_outline,
+                                              size: 20,
                                               color: Colors.redAccent,
                                             ),
+                                            visualDensity:
+                                                VisualDensity.compact,
+                                            padding: EdgeInsets.zero,
+                                            constraints: const BoxConstraints(
+                                                minWidth: 28, minHeight: 28),
                                             tooltip: 'মুছুন',
                                             onPressed: () =>
                                                 _deleteWithUndo(item),
@@ -828,7 +978,7 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(12.0),
         decoration: BoxDecoration(
           color: Colors.white,
           boxShadow: [
@@ -841,47 +991,74 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: SafeArea(
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               IconButton(
                 icon: const Icon(Icons.camera_alt_outlined, color: Colors.green),
                 tooltip: 'কাগজের ফর্দ স্ক্যান করুন',
                 onPressed: _showImageSourceDialog,
               ),
+              const SizedBox(width: 4),
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: Colors.grey.shade300),
                   ),
-                  child: TextField(
-                    controller: _textController,
-                    onSubmitted: (value) {
-                      _processVoiceInput(value);
-                    },
-                    decoration: InputDecoration(
-                      hintText: _isListening
-                          ? 'শুনছি... কথা বলুন'
-                          : 'মুখে বলুন বা এখানে লিখুন...',
-                      hintStyle: TextStyle(
-                        color: _isListening ? Colors.red[700] : Colors.grey,
-                        fontWeight:
-                            _isListening ? FontWeight.bold : FontWeight.normal,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _textController,
+                          minLines: 1,
+                          maxLines: 4,
+                          keyboardType: TextInputType.multiline,
+                          textInputAction: TextInputAction.newline,
+                          onChanged: (_) {
+                            setState(() {});
+                          },
+                          decoration: InputDecoration(
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                            hintText: _isListening
+                                ? 'শুনছি... ফর্দ বলুন, শেষ হলে স্টপ চাপুন'
+                                : 'মুখে বলুন বা এখানে লিখুন...',
+                            hintStyle: TextStyle(
+                              color: _isListening ? Colors.red[700] : Colors.grey,
+                              fontWeight:
+                                  _isListening ? FontWeight.bold : FontWeight.normal,
+                            ),
+                            border: InputBorder.none,
+                          ),
+                        ),
                       ),
-                      border: InputBorder.none,
-                    ),
+                      if (_textController.text.trim().isNotEmpty)
+                        IconButton(
+                          icon: const Icon(Icons.send_rounded, color: Colors.green, size: 22),
+                          tooltip: 'যোগ করুন',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () {
+                            _processVoiceInput(_textController.text);
+                          },
+                        ),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               FloatingActionButton(
+                mini: true,
                 onPressed: _listen,
                 backgroundColor:
                     _isListening ? Colors.red[700] : Colors.green[700],
                 child: Icon(
                   _isListening ? Icons.stop : Icons.mic,
                   color: Colors.white,
-                  size: 28,
+                  size: 24,
                 ),
               ),
             ],

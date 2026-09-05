@@ -6,20 +6,22 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 class GeminiService {
   final String _apiKey;
   late final GenerativeModel _model;
+  String? lastError;
 
-  GeminiService({String? apiKey})
+  GeminiService({String? apiKey, String modelName = 'gemini-2.5-flash'})
       : _apiKey = apiKey ?? dotenv.env['GEMINI_API_KEY'] ?? '' {
     if (_apiKey.isEmpty) {
       debugPrint("Warning: Gemini API Key is empty. Please check your .env file.");
     }
     _model = GenerativeModel(
-      model: 'gemini-2.5-flash',
+      model: modelName,
       apiKey: _apiKey,
     );
   }
 
   /// Parses raw text into a structured list of bazaar items with estimated prices
   Future<List<Map<String, dynamic>>> parseBazaarList(String rawText) async {
+    lastError = null;
     if (rawText.trim().isEmpty) return [];
 
     final prompt = """
@@ -53,6 +55,16 @@ Now process this text: "$rawText"
       return extractAndDecodeJson(rawResponse);
     } catch (e) {
       debugPrint("Gemini Error: $e");
+      final errStr = e.toString();
+      if (errStr.contains('403') || errStr.contains('leaked')) {
+        lastError = 'API Key ত্রুটি: আপনার জেমিনি এপিআই কি ব্লক বা অবৈধ। .env ফাইলে নতুন কি দিন।';
+      } else if (errStr.contains('404') || errStr.contains('not found')) {
+        lastError = 'মডেল পাওয়া যায়নি। অনুগ্রহ করে ইন্টারনেট ও মডেল সেটিংস চেক করুন।';
+      } else if (errStr.contains('SocketException') || errStr.contains('timed out')) {
+        lastError = 'ইন্টারনেট সংযোগ নেই বা টাইমআউট হয়েছে।';
+      } else {
+        lastError = 'এআই সেবা সংযোগ ব্যর্থ হয়েছে: $errStr';
+      }
       return [];
     }
   }
@@ -185,5 +197,158 @@ Rules:
       debugPrint("JSON Extraction/Decoding Error: $e\nRaw Text: $text");
       return [];
     }
+  }
+
+  /// Rule-based offline parser for Bengali and Banglish shopping phrases
+  List<Map<String, dynamic>> parseBazaarListOffline(String rawText) {
+    if (rawText.trim().isEmpty) return [];
+
+    final text = rawText.trim();
+
+    final numMap = {
+      'ek': '১', 'one': '১', 'dui': '২', 'two': '২',
+      'tin': '৩', 'three': '৩', 'char': '৪', 'four': '৪',
+      'pach': '৫', 'paach': '৫', 'five': '৫', 'choy': '৬', 'six': '৬',
+      'shat': '৭', 'sat': '৭', 'seven': '৭', 'at': '৮', 'aath': '৮', 'eight': '৮',
+      'noy': '৯', 'nine': '৯', 'dosh': '১০', 'ten': '১০',
+      '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪',
+      '5': '৫', '6': '৬', '7': '৭', '8': '৮', '9': '৯',
+    };
+
+    final delimiters = RegExp(r'[,;\n]|\s+(?:এবং|আর|o|and)\s+', caseSensitive: false);
+    final segments = text.split(delimiters).map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+
+    List<String> rawItems = [];
+    if (segments.length == 1) {
+      final itemSplitRegex = RegExp(
+        r'(?:(?<=^|\s)(?=(?:\d+|[০-৯]+|ek|dui|tin|char|pach|choy|shat|at|noy|dosh|one|two|three|four|five|six|seven|eight|nine|ten|আধা|পোয়া|এক|দুই|তিন|চার|পাঁচ)\s*(?:কেজি|গ্রাম|লিটার|ডজন|টি|টা|kg|kilo|gm|gram|liter|litre|ltr|dozen|pcs?|হালি)(?=\s|$|[,\n])))',
+        caseSensitive: false,
+      );
+      final parts = text.split(itemSplitRegex).map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+      rawItems = parts.isNotEmpty ? parts : segments;
+    } else {
+      rawItems = segments;
+    }
+
+    final List<Map<String, dynamic>> results = [];
+    final unitRegex = RegExp(
+      r'(\d+|[০-৯]+|(?:ek|dui|tin|char|pach|choy|shat|at|noy|dosh|one|two|three|four|five|six|seven|eight|nine|ten|আধা|পোয়া|এক|দুই|তিন|চার|পাঁচ))?\s*(কেজি|গ্রাম|লিটার|ডজন|টি|টা|kg|kilo|gm|gram|liter|litre|ltr|dozen|pcs?|হালি)?',
+      caseSensitive: false,
+    );
+
+    for (final raw in rawItems) {
+      if (raw.trim().isEmpty) continue;
+
+      final itemStr = raw.trim();
+      String quantity = '১ টি';
+      String itemName = itemStr;
+
+      final match = unitRegex.firstMatch(itemStr);
+      if (match != null && match.group(0) != null && match.group(0)!.trim().isNotEmpty) {
+        String numPart = (match.group(1) ?? '1').trim().toLowerCase();
+        String unitPart = (match.group(2) ?? 'টি').trim().toLowerCase();
+
+        if (numMap.containsKey(numPart)) {
+          numPart = numMap[numPart]!;
+        } else if (numPart == 'আধা') {
+          numPart = '৫০০';
+          unitPart = 'গ্রাম';
+        } else if (numPart == 'পোয়া') {
+          numPart = '২৫০';
+          unitPart = 'গ্রাম';
+        }
+
+        if (unitPart == 'kg' || unitPart == 'kilo') {
+          unitPart = 'কেজি';
+        } else if (unitPart == 'gm' || unitPart == 'gram') {
+          unitPart = 'গ্রাম';
+        } else if (unitPart == 'liter' || unitPart == 'litre' || unitPart == 'ltr') {
+          unitPart = 'লিটার';
+        } else if (unitPart == 'dozen') {
+          unitPart = 'ডজন';
+        } else if (unitPart == 'pc' || unitPart == 'pcs' || unitPart == 'টা') {
+          unitPart = 'টি';
+        }
+
+        quantity = '$numPart $unitPart';
+        itemName = itemStr.replaceFirst(match.group(0)!, '').trim();
+      }
+
+      if (itemName.isEmpty) {
+        itemName = itemStr;
+      }
+
+      itemName = _translateBanglishItem(itemName);
+      final category = _detectCategory(itemName);
+
+      results.add({
+        'itemName': itemName,
+        'quantity': quantity,
+        'category': category,
+        'estimatedPrice': null,
+      });
+    }
+
+    return results;
+  }
+
+  static String _translateBanglishItem(String name) {
+    final lower = name.toLowerCase().trim();
+    const dictionary = {
+      'alu': 'আলু', 'potato': 'আলু',
+      'peyaj': 'পেঁয়াজ', 'pyaj': 'পেঁয়াজ', 'onion': 'পেঁয়াজ',
+      'roshun': 'রসুন', 'rosun': 'রসুন', 'garlic': 'রসুন',
+      'ada': 'আদা', 'ginger': 'আদা',
+      'morich': 'মরিচ', 'chilli': 'মরিচ', 'chili': 'মরিচ',
+      'tometo': 'টমেটো', 'tomato': 'টমেটো',
+      'dim': 'ডিম', 'egg': 'ডিম', 'eggs': 'ডিম',
+      'tel': 'তেল', 'oil': 'তেল', 'soyabean tel': 'সয়াবিন তেল',
+      'chal': 'চাল', 'rice': 'চাল',
+      'dal': 'ডাল', 'daal': 'ডাল', 'lentil': 'ডাল',
+      'murgi': 'মুরগি', 'murgir mangsho': 'মুরগির মাংস', 'chicken': 'মুরগির মাংস',
+      'goru': 'গরুর মাংস', 'gorur mangsho': 'গরুর মাংস', 'beef': 'গরুর মাংস',
+      'khasi': 'খাসির মাংস', 'mutton': 'খাসির মাংস',
+      'mach': 'মাছ', 'fish': 'মাছ',
+      'lobon': 'লবণ', 'salt': 'লবণ',
+      'chini': 'চিনি', 'sugar': 'চিনি',
+      'ata': 'আটা', 'flour': 'আটা',
+      'shosha': 'শসা', 'cucumber': 'শসা',
+      'begun': 'বেগুন', 'brinjal': 'বেগুন',
+      'potol': 'পটল',
+      'fulkopi': 'ফুলকপি', 'cauliflower': 'ফুলকপি',
+      'badhakopi': 'বাঁধাকপি', 'cabbage': 'বাঁধাকপি',
+      'gajor': 'গাজর', 'carrot': 'গাজর',
+      'lebu': 'লেবু', 'lemon': 'লেবু',
+      'dud': 'দুধ', 'dudh': 'দুধ', 'milk': 'দুধ',
+      'cha': 'চা পাতা', 'tea': 'চা পাতা',
+      'kola': 'কলা', 'banana': 'কলা',
+      'apel': 'আপেল', 'apple': 'আপেল',
+      'aam': 'আম', 'mango': 'আম',
+    };
+    return dictionary[lower] ?? name;
+  }
+
+  static String _detectCategory(String name) {
+    final lower = name.toLowerCase();
+    if (lower.contains('আলু') || lower.contains('পেঁয়াজ') || lower.contains('পেঁয়াজ') || lower.contains('পিঁয়াজ') || lower.contains('রসুন') ||
+        lower.contains('আদা') || lower.contains('মরিচ') || lower.contains('টমেটো') ||
+        lower.contains('বেগুন') || lower.contains('পটল') || lower.contains('ফুলকপি') ||
+        lower.contains('বাঁধাকপি') || lower.contains('গাজর') || lower.contains('শসা') ||
+        lower.contains('শাক') || lower.contains('লেবু')) {
+      return 'সবজি';
+    } else if (lower.contains('মুরগি') || lower.contains('মাংস') || lower.contains('গরু') ||
+               lower.contains('খাসি') || lower.contains('মাছ') || lower.contains('ইলিশ') ||
+               lower.contains('রুই') || lower.contains('চিংড়ি')) {
+      return 'মাছ-মাংস';
+    } else if (lower.contains('তেল') || lower.contains('চাল') || lower.contains('ডাল') ||
+               lower.contains('চিনি') || lower.contains('লবণ') || lower.contains('আটা') ||
+               lower.contains('ময়দা') || lower.contains('ডিম') || lower.contains('দুধ') ||
+               lower.contains('চা') || lower.contains('হলুদ') || lower.contains('মশলা')) {
+      return 'মুদি মাল';
+    } else if (lower.contains('আপেল') || lower.contains('কলা') || lower.contains('আম') ||
+               lower.contains('কমলা') || lower.contains('আঙুর') || lower.contains('পেয়ারা')) {
+      return 'ফল';
+    }
+    return 'অন্যান্য';
   }
 }
