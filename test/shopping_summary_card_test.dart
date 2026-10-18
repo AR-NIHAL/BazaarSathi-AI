@@ -17,11 +17,11 @@ void main() {
         ),
       );
 
-      // Verify Percentage (4/10 = 40% -> ৪০%)
-      expect(find.text('৪০%'), findsOneWidget);
+      // Verify Percentage (4/10 = 40% -> ৪০% সম্পন্ন)
+      expect(find.textContaining('৪০%'), findsOneWidget);
 
       // Verify Progress Label
-      expect(find.text('বাজারের অগ্রগতি'), findsOneWidget);
+      expect(find.text('বাজারের সার্বিক অগ্রগতি'), findsOneWidget);
 
       // Verify Total, Completed, Remaining Counts in Bengali numerals
       expect(find.text('১০ টি'), findsOneWidget); // total
@@ -42,7 +42,7 @@ void main() {
         ),
       );
 
-      expect(find.text('বাজারের অগ্রগতি'), findsNothing);
+      expect(find.text('বাজারের সার্বিক অগ্রগতি'), findsNothing);
     });
   });
 }
