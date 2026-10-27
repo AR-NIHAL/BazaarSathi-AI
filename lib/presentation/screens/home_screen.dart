@@ -801,17 +801,66 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                                 child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Expanded(
                                       child: _buildQuickActionCard(
-                                        icon: Icons.soup_kitchen_outlined,
-                                        iconBgColor: const Color(0xFF0C6E3C),
-                                        iconColor: Colors.white,
-                                        cardBgColor: const Color(0xFFF0FDF4),
-                                        borderColor: const Color(0xFFDCFCE7),
-                                        arrowColor: const Color(0xFF0C6E3C),
-                                        title: 'রেসিপি সহকারী',
-                                        subtitle: 'রান্না থেকে ফর্দ তৈরি',
+                                        iconWidget: Container(
+                                          width: 40,
+                                          height: 40,
+                                          decoration: ShapeDecoration(
+                                            gradient: const LinearGradient(
+                                              colors: [Color(0xFF0D8249), Color(0xFF065F38)],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            ),
+                                            shape: const ContinuousRectangleBorder(
+                                              borderRadius: BorderRadius.all(Radius.circular(24)),
+                                            ),
+                                            shadows: [
+                                              BoxShadow(
+                                                color: const Color(0xFF0D8249).withValues(alpha: 0.28),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 3),
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Icon(
+                                            Icons.auto_awesome_rounded,
+                                            color: Color(0xFFFBBF24),
+                                            size: 20,
+                                          ),
+                                        ),
+                                        tagWidget: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
+                                          decoration: const ShapeDecoration(
+                                            color: Color(0xFF047857),
+                                            shape: StadiumBorder(),
+                                          ),
+                                          child: const Text(
+                                            'AI কিচেন',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                        title: 'AI রেসিপি থেকে ফর্দ',
+                                        description: 'কী রান্না করবেন? \'ইলিশ পাতুরি\' বা \'বিফ ভুনা\' বললে মসলা ও উপাদানের অটো লিস্ট হবে!',
+                                        buttonText: 'ট্রাই করুন',
+                                        buttonIcon: const Icon(
+                                          Icons.auto_awesome_rounded,
+                                          color: Color(0xFFF59E0B),
+                                          size: 13,
+                                        ),
+                                        buttonTextColor: const Color(0xFF047857),
+                                        buttonBorderColor: const Color(0xFF6EE7B7).withValues(alpha: 0.6),
+                                        backgroundGradient: const LinearGradient(
+                                          colors: [Color(0xFFF1FDF6), Color(0xFFE5F9ED)],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
                                         onTap: () => RecipeBazaarDialog.show(
                                           context,
                                           onGenerate: _generateRecipeList,
@@ -821,14 +870,62 @@ class _HomeScreenState extends State<HomeScreen> {
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: _buildQuickActionCard(
-                                        icon: Icons.camera_alt_rounded,
-                                        iconBgColor: const Color(0xFFF59E0B),
-                                        iconColor: Colors.white,
-                                        cardBgColor: const Color(0xFFFFFBEB),
-                                        borderColor: const Color(0xFFFEF3C7),
-                                        arrowColor: const Color(0xFFD97706),
+                                        iconWidget: Container(
+                                          width: 40,
+                                          height: 40,
+                                          decoration: ShapeDecoration(
+                                            gradient: const LinearGradient(
+                                              colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            ),
+                                            shape: const ContinuousRectangleBorder(
+                                              borderRadius: BorderRadius.all(Radius.circular(24)),
+                                            ),
+                                            shadows: [
+                                              BoxShadow(
+                                                color: const Color(0xFFF59E0B).withValues(alpha: 0.28),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 3),
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Icon(
+                                            Icons.camera_alt_rounded,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                        ),
+                                        tagWidget: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
+                                          decoration: const ShapeDecoration(
+                                            color: Color(0xFFFEF3C7),
+                                            shape: StadiumBorder(),
+                                          ),
+                                          child: const Text(
+                                            'OCR ১ সেকেন্ড',
+                                            style: TextStyle(
+                                              color: Color(0xFF92400E),
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
                                         title: 'কাগজের ফর্দ স্ক্যান',
-                                        subtitle: 'ছবি তুলে অটো লিস্ট',
+                                        description: 'হাতে লেখা ফর্দের ছবি তুলুন, মুহূর্তেই ক্যাটাগরি ও দরসহ ডিজিটাল ফর্দ প্রস্তুত।',
+                                        buttonText: 'ছবি তুলুন',
+                                        buttonIcon: const Icon(
+                                          Icons.bolt_rounded,
+                                          color: Color(0xFFEA580C),
+                                          size: 15,
+                                        ),
+                                        buttonTextColor: const Color(0xFF1E293B),
+                                        buttonBorderColor: const Color(0xFFE2E8F0),
+                                        backgroundGradient: const LinearGradient(
+                                          colors: [Color(0xFFFFFDF5), Color(0xFFFEF5E7)],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
                                         onTap: _showImageSourceDialog,
                                       ),
                                     ),
@@ -1182,7 +1279,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                             // Bottom space for floating bar
                             const SliverToBoxAdapter(
-                              child: SizedBox(height: 32),
+                              child: SizedBox(height: 80),
                             ),
                           ],
                         );
@@ -1196,23 +1293,51 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Custom Top App Header matching the exact screenshot design
+  /// Custom Top App Header matching reference image with iOS continuous roundedness
   Widget _buildCustomHeader() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      color: Colors.white,
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: ShapeDecoration(
+        color: Colors.white,
+        shape: const ContinuousRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(44)),
+          side: BorderSide(
+            color: Color(0xFFD1FAE5),
+            width: 1.2,
+          ),
+        ),
+        shadows: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.05),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: const Color(0xFF0C6E3C).withValues(alpha: 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
       child: Row(
         children: [
-          // App Logo Container
+          // 1. App Logo Squircle Container
           Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: const Color(0xFF0C6E3C),
-              borderRadius: BorderRadius.circular(13),
-              boxShadow: [
+            width: 44,
+            height: 44,
+            decoration: ShapeDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0D8A52), Color(0xFF06683B)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              shape: const ContinuousRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(26)),
+              ),
+              shadows: [
                 BoxShadow(
-                  color: const Color(0xFF0C6E3C).withValues(alpha: 0.25),
+                  color: const Color(0xFF0C6E3C).withValues(alpha: 0.35),
                   blurRadius: 8,
                   offset: const Offset(0, 3),
                 ),
@@ -1228,156 +1353,186 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(width: 10),
 
-          // Title & Subtitle Column
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Text(
-                    'বাজার সাথী',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF111827),
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFDCFCE7),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Text(
-                      'AI',
+          // 2. Title & Live Subtitle Column
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    const Text(
+                      'বাজার সাথী',
                       style: TextStyle(
-                        color: Color(0xFF15803D),
+                        fontSize: 17.5,
                         fontWeight: FontWeight.w800,
-                        fontSize: 11,
+                        color: Color(0xFF111827),
+                        letterSpacing: -0.2,
                       ),
                     ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFDCFCE7),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'AI',
+                        style: TextStyle(
+                          color: Color(0xFF15803D),
+                          fontWeight: FontWeight.w800,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                GestureDetector(
+                  onTap: _showMarketPriceSheet,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color(0xFF10B981),
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      const Text(
+                        'কারওয়ান বাজার লাইভ দর',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: Color(0xFF64748B),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 2),
-              const Text(
-                'আজকের স্মার্ট কাঁচাবাজার ফর্দ',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF6B7280),
-                  fontWeight: FontWeight.w500,
                 ),
-              ),
-            ],
-          ),
-          const Spacer(),
-
-          // Notification Bell with indicator dot
-          Stack(
-            children: [
-              IconButton(
-                icon: const Icon(
-                  Icons.notifications_none_rounded,
-                  color: Color(0xFF374151),
-                  size: 24,
-                ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                onPressed: _showNotificationDialog,
-              ),
-              Positioned(
-                right: 4,
-                top: 4,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF59E0B),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          // 3-dots Menu
-          PopupMenuButton<String>(
-            icon: const Icon(
-              Icons.more_vert_rounded,
-              color: Color(0xFF374151),
-              size: 22,
+              ],
             ),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            padding: EdgeInsets.zero,
-            onSelected: (val) {
-              if (val == 'add') _showAddOrEditDialog();
-              if (val == 'recipe') RecipeBazaarDialog.show(context, onGenerate: _generateRecipeList);
-              if (val == 'scan') _showImageSourceDialog();
-              if (val == 'clear') _confirmClearAll();
-            },
-            itemBuilder: (ctx) => [
-              const PopupMenuItem(
-                value: 'add',
-                child: Row(
-                  children: [
-                    Icon(Icons.add_circle_outline, color: Color(0xFF0C6E3C), size: 18),
-                    SizedBox(width: 8),
-                    Text('নতুন আইটেম যোগ করুন'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'recipe',
-                child: Row(
-                  children: [
-                    Icon(Icons.soup_kitchen_outlined, color: Color(0xFF0C6E3C), size: 18),
-                    SizedBox(width: 8),
-                    Text('রেসিপি সহকারী'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'scan',
-                child: Row(
-                  children: [
-                    Icon(Icons.camera_alt_outlined, color: Color(0xFF0C6E3C), size: 18),
-                    SizedBox(width: 8),
-                    Text('কাগজের ফর্দ স্ক্যান'),
-                  ],
-                ),
-              ),
-              const PopupMenuDivider(),
-              const PopupMenuItem(
-                value: 'clear',
-                child: Row(
-                  children: [
-                    Icon(Icons.delete_sweep, color: Color(0xFFEF4444), size: 18),
-                    SizedBox(width: 8),
-                    Text('সম্পূর্ণ ফর্দ মুছুন', style: TextStyle(color: Color(0xFFEF4444))),
-                  ],
-                ),
-              ),
-            ],
           ),
 
-          // User / Language Avatar
+          // 3. 3-dots Menu Button
           Container(
             width: 36,
             height: 36,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE0E7FF),
+            decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFC7D2FE), width: 1),
+              color: Color(0xFFF1F5F9),
             ),
-            child: const Center(
-              child: Text(
-                'বা',
-                style: TextStyle(
-                  color: Color(0xFF4338CA),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
+            child: PopupMenuButton<String>(
+              icon: const Icon(
+                Icons.more_vert_rounded,
+                color: Color(0xFF64748B),
+                size: 20,
+              ),
+              padding: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              onSelected: (val) {
+                if (val == 'add') _showAddOrEditDialog();
+                if (val == 'recipe') RecipeBazaarDialog.show(context, onGenerate: _generateRecipeList);
+                if (val == 'scan') _showImageSourceDialog();
+                if (val == 'tips') _showNotificationDialog();
+                if (val == 'clear') _confirmClearAll();
+              },
+              itemBuilder: (ctx) => [
+                const PopupMenuItem(
+                  value: 'add',
+                  child: Row(
+                    children: [
+                      Icon(Icons.add_circle_outline, color: Color(0xFF0C6E3C), size: 18),
+                      SizedBox(width: 8),
+                      Text('নতুন আইটেম যোগ করুন'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'recipe',
+                  child: Row(
+                    children: [
+                      Icon(Icons.soup_kitchen_outlined, color: Color(0xFF0C6E3C), size: 18),
+                      SizedBox(width: 8),
+                      Text('রেসিপি সহকারী'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'scan',
+                  child: Row(
+                    children: [
+                      Icon(Icons.camera_alt_outlined, color: Color(0xFF0C6E3C), size: 18),
+                      SizedBox(width: 8),
+                      Text('কাগজের ফর্দ স্ক্যান'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'tips',
+                  child: Row(
+                    children: [
+                      Icon(Icons.notifications_active_outlined, color: Color(0xFFF59E0B), size: 18),
+                      SizedBox(width: 8),
+                      Text('পরামর্শ ও টিপস'),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                const PopupMenuItem(
+                  value: 'clear',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_sweep, color: Color(0xFFEF4444), size: 18),
+                      SizedBox(width: 8),
+                      Text('সম্পূর্ণ ফর্দ মুছুন', style: TextStyle(color: Color(0xFFEF4444))),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(width: 8),
+
+          // 4. Language / Market Pill Button (বা ▾)
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: _showMarketPriceSheet,
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0FDF4),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: const Color(0xFFA7F3D0),
+                    width: 1.2,
+                  ),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'বা',
+                      style: TextStyle(
+                        color: Color(0xFF065F46),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
+                    ),
+                    SizedBox(width: 2),
+                    Icon(
+                      Icons.arrow_drop_down_rounded,
+                      color: Color(0xFF059669),
+                      size: 18,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -1387,72 +1542,133 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Quick Action Card (রেসিপি সহকারী / কাগজের ফর্দ স্ক্যান)
+  /// Quick Action Card (AI রেসিপি থেকে ফর্দ / কাগজের ফর্দ স্ক্যান) with iOS Continuous Roundedness & CTA
   Widget _buildQuickActionCard({
-    required IconData icon,
-    required Color iconBgColor,
-    required Color iconColor,
-    required Color cardBgColor,
-    required Color borderColor,
-    required Color arrowColor,
+    required Widget iconWidget,
+    required Widget tagWidget,
     required String title,
-    required String subtitle,
+    required String description,
+    required String buttonText,
+    required Widget buttonIcon,
+    required Color buttonTextColor,
+    required Color buttonBorderColor,
+    required Gradient backgroundGradient,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: cardBgColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: borderColor, width: 1.2),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
+    return Material(
+      color: Colors.transparent,
+      shape: const ContinuousRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(44)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const ContinuousRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(44)),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: iconBgColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, color: iconColor, size: 20),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+          decoration: ShapeDecoration(
+            gradient: backgroundGradient,
+            shape: const ContinuousRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(44)),
+            ),
+            shadows: [
+              BoxShadow(
+                color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
+              ),
+              BoxShadow(
+                color: const Color(0xFF0F172A).withValues(alpha: 0.02),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Top Row: Icon Squircle + Tag Badge
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  iconWidget,
+                  tagWidget,
+                ],
+              ),
+              const SizedBox(height: 10),
+
+              // Title
+              Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF0F172A),
+                  letterSpacing: -0.2,
                 ),
-                Icon(Icons.arrow_forward_rounded, color: arrowColor, size: 20),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF111827),
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              subtitle,
-              style: const TextStyle(
-                fontSize: 11.5,
-                color: Color(0xFF4B5563),
-                fontWeight: FontWeight.w500,
+              const SizedBox(height: 4),
+
+              // Description safely bounded to exactly 3 lines max
+              SizedBox(
+                height: 48,
+                child: Text(
+                  description,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF475569),
+                    height: 1.35,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 10),
+
+              // Bottom CTA Pill Button
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 7),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(
+                    color: buttonBorderColor,
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      buttonText,
+                      style: TextStyle(
+                        color: buttonTextColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    buttonIcon,
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1600,94 +1816,231 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Sticky Bottom Floating Voice & Text Input Bar
+  /// Sticky Bottom Floating Voice & Text Input Bar matching reference image
   Widget _buildStickyInputBar() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
+      color: Colors.transparent,
       child: SafeArea(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.camera_alt_outlined, color: Color(0xFF0C6E3C)),
-              tooltip: 'কাগজের ফর্দ স্ক্যান করুন',
-              onPressed: _showImageSourceDialog,
-            ),
-            const SizedBox(width: 4),
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: Container(
+            height: 56,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(40),
+              border: Border.all(
+                color: const Color(0xFFE2E8F0).withValues(alpha: 0.6),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0F172A).withValues(alpha: 0.08),
+                  blurRadius: 18,
+                  offset: const Offset(0, 4),
+                  spreadRadius: 0,
                 ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _textController,
-                        minLines: 1,
-                        maxLines: 4,
-                        keyboardType: TextInputType.multiline,
-                        textInputAction: TextInputAction.newline,
-                        onChanged: (_) {
-                          setState(() {});
-                        },
-                        decoration: InputDecoration(
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                          hintText: _isListening
-                              ? 'শুনছি... ফর্দ বলুন, শেষ হলে স্টপ চাপুন'
-                              : 'মুখে বলুন বা এখানে লিখুন...',
-                          hintStyle: TextStyle(
-                            color: _isListening ? const Color(0xFFDC2626) : const Color(0xFF94A3B8),
-                            fontWeight: _isListening ? FontWeight.bold : FontWeight.normal,
-                            fontSize: 13.5,
-                          ),
-                          border: InputBorder.none,
+                BoxShadow(
+                  color: const Color(0xFF0C6E3C).withValues(alpha: 0.04),
+                  blurRadius: 6,
+                  offset: const Offset(0, 1),
+                  spreadRadius: 0,
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(5),
+            child: Row(
+              children: [
+                // 1. Left Camera Circular Button
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: _showImageSourceDialog,
+                    borderRadius: BorderRadius.circular(24),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFFEDF8F2),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.camera_alt_outlined,
+                          color: Color(0xFF0C6E3C),
+                          size: 21,
                         ),
                       ),
                     ),
-                    if (_textController.text.trim().isNotEmpty)
-                      IconButton(
-                        icon: const Icon(Icons.send_rounded, color: Color(0xFF0C6E3C), size: 22),
-                        tooltip: 'যোগ করুন',
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        onPressed: () {
-                          _processVoiceInput(_textController.text);
-                        },
-                      ),
-                  ],
+                  ),
                 ),
-              ),
+
+                const SizedBox(width: 8),
+
+                // 2. Center Inset Pill: Input Field + Waveform / Send Action
+                Expanded(
+                  child: Container(
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: TextField(
+                            controller: _textController,
+                            minLines: 1,
+                            maxLines: 1,
+                            keyboardType: TextInputType.text,
+                            textInputAction: TextInputAction.send,
+                            onSubmitted: (val) {
+                              if (val.trim().isNotEmpty) {
+                                _processVoiceInput(val);
+                              }
+                            },
+                            onChanged: (_) {
+                              setState(() {});
+                            },
+                            style: const TextStyle(
+                              fontSize: 13.5,
+                              color: Color(0xFF1E293B),
+                              fontWeight: FontWeight.w500,
+                            ),
+                            cursorColor: const Color(0xFF0C6E3C),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
+                              hintText: _isListening
+                                  ? 'শুনছি... ফর্দ বলুন, শেষ হলে চাপুন'
+                                  : 'মুখে বলুন: \'১ কেজি বেগুন আর ধনেপাতা যোগ\'',
+                              hintStyle: TextStyle(
+                                color: _isListening
+                                    ? const Color(0xFFDC2626)
+                                    : const Color(0xFF64748B),
+                                fontWeight: _isListening ? FontWeight.w600 : FontWeight.w400,
+                                fontSize: 13.0,
+                              ),
+                              border: InputBorder.none,
+                            ),
+                          ),
+                        ),
+
+                        // Trailing Action: Send button if text entered, else Waveform Equalizer
+                        if (_textController.text.trim().isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () {
+                                  _processVoiceInput(_textController.text);
+                                },
+                                borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Color(0xFF0C6E3C),
+                                  ),
+                                  child: const Icon(
+                                    Icons.arrow_upward_rounded,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                        else
+                          Padding(
+                            padding: const EdgeInsets.only(right: 14),
+                            child: _buildWaveformBars(),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 8),
+
+                // 3. Right Floating Action Button with Soft Outer Halo Ring
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: _listen,
+                    borderRadius: BorderRadius.circular(24),
+                    child: Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _isListening
+                            ? const Color(0xFFFEE2E2)
+                            : const Color(0xFFDCFCE7),
+                        boxShadow: [
+                          BoxShadow(
+                            color: (_isListening
+                                    ? const Color(0xFFDC2626)
+                                    : const Color(0xFF0C6E3C))
+                                .withValues(alpha: 0.28),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _isListening
+                                ? const Color(0xFFDC2626)
+                                : const Color(0xFF0C6E3C),
+                          ),
+                          child: Icon(
+                            _isListening ? Icons.stop_rounded : Icons.mic_none_rounded,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-            FloatingActionButton(
-              mini: true,
-              onPressed: _listen,
-              backgroundColor: _isListening ? const Color(0xFFDC2626) : const Color(0xFF0C6E3C),
-              elevation: 2,
-              child: Icon(
-                _isListening ? Icons.stop : Icons.mic,
-                color: Colors.white,
-                size: 24,
-              ),
-            ),
-          ],
+          ),
         ),
+      ),
+    );
+  }
+
+  /// 3-bar Audio Waveform Equalizer matching reference image
+  Widget _buildWaveformBars() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildWaveformBar(height: _isListening ? 14 : 10),
+        const SizedBox(width: 2.5),
+        _buildWaveformBar(height: _isListening ? 20 : 16),
+        const SizedBox(width: 2.5),
+        _buildWaveformBar(height: _isListening ? 14 : 10),
+      ],
+    );
+  }
+
+  Widget _buildWaveformBar({required double height}) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      width: 2.5,
+      height: height,
+      decoration: BoxDecoration(
+        color: const Color(0xFF10B981),
+        borderRadius: BorderRadius.circular(2),
       ),
     );
   }
